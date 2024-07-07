@@ -60,61 +60,44 @@ public class FileSelectorActivity extends Activity {
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
-		mTextBuffer  = (EditTextCursorWatcher) findViewById(R.id.text_buffer);
-		mTextPage    = (TextView) findViewById(R.id.text_page);
-		mTextTotal   = (TextView) findViewById(R.id.text_total);
-		mReadButton  = (Button) findViewById(R.id.button_read);
-		mWriteButton = (Button) findViewById(R.id.button_write);
-		mLoadButton  = (Button) findViewById(R.id.button_load);
-		mSaveButton  = (Button) findViewById(R.id.button_save);
-		mLinkButton  = (Button) findViewById(R.id.button_link);
-		
+
+		mTextBuffer  = findViewById(R.id.text_buffer);
+		mTextPage    = findViewById(R.id.text_page);
+		mTextTotal   = findViewById(R.id.text_total);
+		mReadButton  = findViewById(R.id.button_read);
+		mWriteButton = findViewById(R.id.button_write);
+		mLoadButton  = findViewById(R.id.button_load);
+		mSaveButton  = findViewById(R.id.button_save);
+		mLinkButton  = findViewById(R.id.button_link);
+
 		mReadButton.setOnClickListener(mReadTagListener);
 		mWriteButton.setOnClickListener(mWriteTagListener);
-		
-		mLoadButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				new FileSelector(FileSelectorActivity.this, FileOperation.LOAD, mLoadFileListener, mFileFilter).show();
-			}
+
+		mLoadButton.setOnClickListener(v -> new FileSelector(FileSelectorActivity.this, FileOperation.LOAD, mLoadFileListener, mFileFilter).show());
+
+		mSaveButton.setOnClickListener(v -> new FileSelector(FileSelectorActivity.this, FileOperation.SAVE, mSaveFileListener, mFileFilter).show());
+
+		mLinkButton.setOnClickListener(v -> {
+			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://emutag.com"));
+			startActivity(browserIntent);
 		});
-		
-		mSaveButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				new FileSelector(FileSelectorActivity.this, FileOperation.SAVE, mSaveFileListener, mFileFilter).show();
-			}
+
+		mTextBuffer.setOnSelectionChangedListener((selStart, selEnd) -> {
+			String pageText = "Page ";
+			int pageDec = mTextBuffer.getLayout().getLineForOffset(mTextBuffer.getSelectionStart());
+			if (pageDec < 100) pageText = pageText + " ";
+			if (pageDec < 10)  pageText = pageText + " ";
+			byte[] pageHex = { (byte)pageDec };
+			pageText = pageText + pageDec + " [0x" + ByteArrayToHexString(pageHex) + "] /";
+			mTextPage.setText(pageText);
 		});
-		
-		mLinkButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://emutag.com"));
-				startActivity(browserIntent);
-			}
-		});
-		
-		mTextBuffer.setOnSelectionChangedListener(new EditTextCursorWatcher.OnSelChangedListener() {
-			@Override
-			public void onSelChanged(int selStart, int selEnd) {
-				String pageText = "Page ";
-				int pageDec = mTextBuffer.getLayout().getLineForOffset(mTextBuffer.getSelectionStart());
-				if (pageDec < 100) pageText = pageText + " ";
-				if (pageDec < 10)  pageText = pageText + " ";
-				byte[] pageHex = { (byte)pageDec };
-				pageText = pageText + pageDec + " [0x" + ByteArrayToHexString(pageHex) + "] /";
-				mTextPage.setText(pageText);
-			}
-		});
-		
+
 		mTextBuffer.addTextChangedListener(new TextWatcher() {
-			public void afterTextChanged(Editable s) { };
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) { };
-			
+			public void afterTextChanged(Editable s) { }
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				String totalText = " Total ";
-				//int totalDec = mTextBuffer.getLineCount();
 				String[] lineCount = mTextBuffer.getText().toString().split(System.getProperty("line.separator"));
 				int totalDec = lineCount.length;
 				if (totalDec < 100) totalText = totalText + " ";
@@ -124,66 +107,35 @@ public class FileSelectorActivity extends Activity {
 				mTextTotal.setText(totalText);
 			}
 		});
-		
-		/*
-		mTextBuffer.setOnKeyListener(new View.OnKeyListener() {
-			@Override
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				mTextStatus.setText("Page " + mTextBuffer.getLayout().getLineForOffset(mTextBuffer.getSelectionStart()));
-				return false;
-			}
-		});
-		
-		mTextBuffer.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View view, MotionEvent event) {
-				mTextStatus.setText("Page " + mTextBuffer.getLayout().getLineForOffset(mTextBuffer.getSelectionStart()));
-				return false;
-			}
-		});
-		*/
-		
+
 		mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
 		if (mNfcAdapter == null) {
-			// Stop here, we definitely need NFC
 			Toast.makeText(this, "This device doesn't support NFC.", Toast.LENGTH_LONG).show();
 			finish();
 			return;
 		}
-		
+
 		if (!mNfcAdapter.isEnabled()) {
 			Toast.makeText(this, "Please activate NFC and press Back to return to the application!", Toast.LENGTH_LONG).show();
-	        startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
+			startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
 		}
-		
+
 		tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
 		intentFiltersArray = new IntentFilter[] {tech};
 		intent = new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE); // Updated this line
-		
+		pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
 		scanAction = ACTION_NONE;
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// creating pending intent:
-		//PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-		// creating intent receiver for NFC events:
-		//IntentFilter filter = new IntentFilter();
-		//IntentFilter tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
-		//IntentFilter[] intentFiltersArray = new IntentFilter[] {tech};
-		//filter.addAction(NfcAdapter.ACTION_TECH_DISCOVERED);
-		// enabling foreground dispatch for getting intent from NFC event:
-		//NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-		
 		mNfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, this.techListsArray);
 	}
-	
+
 	@Override
 	protected void onPause() {
-		// disabling foreground dispatch:
-		//NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 		mNfcAdapter.disableForegroundDispatch(this);
 		super.onPause();
 	}
@@ -191,11 +143,13 @@ public class FileSelectorActivity extends Activity {
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
+		if (intent == null) return;
+
 		String action = intent.getAction();
 		if (action != null && action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
 			if ((alertDialog != null) && alertDialog.isShowing()) alertDialog.dismiss();
 			
-			String mTextBufferText = mTextBuffer.getText().toString();
+			String mTextBufferText = mTextBuffer != null ? mTextBuffer.getText().toString() : "";
 			
 			NfcThread nfcThread = new NfcThread(intent, scanAction, mTextBufferText, mTextBufferHandler, mToastShortHandler, mToastLongHandler, mShowInfoDialogHandler);
 			nfcThread.start();
