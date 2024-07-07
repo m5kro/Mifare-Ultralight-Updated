@@ -1,5 +1,6 @@
 # Mifare-Ultralight-Updated
-An attempt to update the Mifare++ Ultralight apk to support android 14
+An attempt to update the Mifare++ Ultralight apk to support android 14. <br>
+Credit to emutag for the app
 
 # Current Status
 Build is working ✅<br>
