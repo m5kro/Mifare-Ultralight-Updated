@@ -1,0 +1,4 @@
+http://code.google.com/p/nfc-tools/source/browse/trunk/nfcutils/src/lsnfc.c?spec=svn529&r=529
+http://en.wikipedia.org/wiki/MIFARE
+http://developer.android.com/reference/android/nfc/NfcAdapter.html
+http://stackoverflow.com/questions/10648449/how-do-i-set-a-edittext-to-the-input-of-only-hexadecimal-numbers
