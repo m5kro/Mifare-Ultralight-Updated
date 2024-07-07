@@ -190,7 +190,9 @@ public class FileSelectorActivity extends Activity {
 	
 	@Override
 	protected void onNewIntent(Intent intent) {
-		if (intent.getAction().equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
+		super.onNewIntent(intent);
+		String action = intent.getAction();
+		if (action != null && action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
 			if ((alertDialog != null) && alertDialog.isShowing()) alertDialog.dismiss();
 			
 			String mTextBufferText = mTextBuffer.getText().toString();
@@ -201,6 +203,7 @@ public class FileSelectorActivity extends Activity {
 			scanAction = ACTION_NONE;
 		}
 	}
+
 	
 	@SuppressLint("HandlerLeak")
 	private Handler mTextBufferHandler = new Handler() {
