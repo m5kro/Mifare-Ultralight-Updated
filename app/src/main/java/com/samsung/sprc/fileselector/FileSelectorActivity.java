@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -158,8 +159,7 @@ public class FileSelectorActivity extends Activity {
 		tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
 		intentFiltersArray = new IntentFilter[] {tech};
 		intent = new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		//FLAG_ACTIVITY_REORDER_TO_FRONT FLAG_RECEIVER_REPLACE_PENDING
-		pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+		pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE); // Updated this line
 		
 		scanAction = ACTION_NONE;
 	}
@@ -379,4 +379,3 @@ public class FileSelectorActivity extends Activity {
 		return out;
 	}
 }
-
